@@ -50,4 +50,80 @@ document.addEventListener('DOMContentLoaded', () => {
       statusText.className = 'active';
     }
   }
+
+  // ==========================================
+  // POMODORO UI CONTROLLER
+  // ==========================================
+  const pomoSetup = document.getElementById('pomo-setup');
+  const pomoActive = document.getElementById('pomo-active');
+  const pomoStartBtn = document.getElementById('pomo-start-btn');
+  const pomoStopBtn = document.getElementById('pomo-stop-btn');
+  const pomoFocusMin = document.getElementById('pomo-focus-min');
+  const pomoBreakMin = document.getElementById('pomo-break-min');
+  const pomoTimerDisplay = document.getElementById('pomo-timer-display');
+  const pomoModeLabel = document.getElementById('pomo-mode-label');
+  const pomoScore = document.getElementById('pomo-score');
+  const pomoDistractions = document.getElementById('pomo-distractions');
+  const pomoDoom = document.getElementById('pomo-doom');
+
+  let uiTickInterval = null;
+
+  function refreshPomodoroUI() {
+    chrome.runtime.sendMessage({ type: 'GET_POMODORO_STATE' }, (state) => {
+      if (!state) return;
+
+      if (state.isActive) {
+        pomoSetup.style.display = 'none';
+        pomoActive.style.display = 'block';
+
+        pomoModeLabel.textContent = state.mode.toUpperCase() + " MODE";
+        pomoModeLabel.style.color = state.mode === 'focus' ? '#6366f1' : '#10b981';
+
+        pomoScore.textContent = state.final_focus_score;
+        pomoDistractions.textContent = state.distractions + state.tab_switches;
+        pomoDoom.textContent = state.doomscroll_cycles;
+
+        // Calculate visual time remaining
+        const elapsedMs = Date.now() - state.startTime;
+        const totalMs = state.targetDurationMinutes * 60 * 1000;
+        let remainingMs = totalMs - elapsedMs;
+        if (remainingMs < 0) remainingMs = 0;
+
+        const mins = Math.floor(remainingMs / 60000);
+        const secs = Math.floor((remainingMs % 60000) / 1000);
+        pomoTimerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+      } else {
+        pomoSetup.style.display = 'block';
+        pomoActive.style.display = 'none';
+      }
+    });
+  }
+
+  pomoStartBtn.addEventListener('click', () => {
+    const focusVal = parseInt(pomoFocusMin.value, 10) || 25;
+    const breakVal = parseInt(pomoBreakMin.value, 10) || 5;
+    
+    chrome.runtime.sendMessage({
+      type: 'POMODORO_COMMAND',
+      command: 'START',
+      payload: {
+        focusMinutes: focusVal,
+        breakMinutes: breakVal
+      }
+    });
+    refreshPomodoroUI();
+  });
+
+  pomoStopBtn.addEventListener('click', () => {
+    chrome.runtime.sendMessage({
+      type: 'POMODORO_COMMAND',
+      command: 'STOP'
+    });
+    setTimeout(refreshPomodoroUI, 100);
+  });
+
+  // Start the UI tick
+  refreshPomodoroUI();
+  uiTickInterval = setInterval(refreshPomodoroUI, 1000);
 });

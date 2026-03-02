@@ -1,3 +1,15 @@
+-- DANGER: This will DROP existing tables and wipe the data cleanly
+-- Run this in your Supabase SQL Editor to cleanly reset the project to REAL user UUIDs.
+
+drop table if exists future_projection cascade;
+drop table if exists burnout_scores cascade;
+drop table if exists mood_logs cascade;
+drop table if exists leetcode_activity cascade;
+drop table if exists calendar_activity cascade;
+drop table if exists github_activity cascade;
+drop table if exists browser_usage cascade;
+drop table if exists users cascade;
+
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
@@ -16,6 +28,8 @@ create table if not exists browser_usage (
   category text not null,
   duration_seconds int not null default 0,
   visits int not null default 1,                   -- how many times they switched to this tab
+  scroll_depth_pixels int not null default 0,      -- metric for doomscrolling
+  max_concurrent_tabs int not null default 1,      -- metric for tab hoarding
   date date not null default current_date,         -- group by day securely
   last_updated timestamptz not null default now(), -- track most recent activity
   
@@ -37,7 +51,6 @@ create index if not exists idx_browser_usage_user_id_date on browser_usage (user
 create index if not exists idx_calendar_activity_user_id_date on calendar_activity (user_id, date);
 
 -- AUTH TRIGGER
--- Automatically sync Supabase auth users to the public users table 
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -61,19 +74,27 @@ create or replace function increment_browser_usage(
   p_user_id uuid,
   p_domain text,
   p_category text,
-  p_duration int
+  p_duration int,
+  p_scroll_depth int default 0,
+  p_max_tabs int default 1
 )
 returns void
 language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.browser_usage (user_id, domain, category, duration_seconds, visits, date, last_updated)
-  values (p_user_id, p_domain, p_category, p_duration, 1, current_date, now())
+  insert into public.browser_usage (
+    user_id, domain, category, duration_seconds, visits, date, scroll_depth_pixels, max_concurrent_tabs, last_updated
+  )
+  values (
+    p_user_id, p_domain, p_category, p_duration, 1, current_date, p_scroll_depth, p_max_tabs, now()
+  )
   on conflict (user_id, domain, date)
   do update set 
     duration_seconds = browser_usage.duration_seconds + p_duration,
     visits = browser_usage.visits + 1,
+    scroll_depth_pixels = browser_usage.scroll_depth_pixels + p_scroll_depth,
+    max_concurrent_tabs = greatest(browser_usage.max_concurrent_tabs, p_max_tabs),
     last_updated = now();
 end;
 $$;

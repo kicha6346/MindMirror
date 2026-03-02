@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { calculateBurnoutScore } from '@/lib/scoring';
 
 export async function POST(req: Request) {
@@ -11,43 +11,53 @@ export async function POST(req: Request) {
     const metrics = await calculateBurnoutScore(uid, new Date());
 
     const prompt = `
-    You are an AI behavior intelligence system called MindMirror. 
-    Your tone is: Calm by default, confronting when burnout risk is high, but NEVER shame-based. No guilt language.
-    
-    The user's current behavioral metrics (0-100 scale, where 100 means high intensity of that metric):
-    - Overall Burnout Risk: ${metrics.score}
+    You are MindMirror, an elite AI burnout-prevention coach.
+    Tone: Direct, empathetic, clinical, NEVER shame-based.
+    Constraints: EXTREMELY concise. No fluff. No greetings. Get straight to the point.
+
+    User's Metrics (0-100):
+    - Burnout Risk: ${metrics.score}
     - Work Intensity: ${metrics.workIntensity.toFixed(1)}
-    - Night Activity (late working): ${metrics.nightActivity.toFixed(1)}
-    - Social Isolation: ${metrics.socialIsolation.toFixed(1)}
+    - Night Activity: ${metrics.nightActivity.toFixed(1)}
+    - Context Switching: ${metrics.distractionPenalty.toFixed(1)}
     - Recovery Deficit: ${metrics.recoveryDeficit.toFixed(1)}
     
-    Based on this data, provide a 2-3 sentence personalized insight directed at the user. 
-    Focus on correlation between these metrics (e.g. "Your late-night work correlates with recovery deficits"). 
-    Always provide actionable, empathetic advice.
+    Context:
+    - Meetings: ${metrics.rawMetrics.calendarMinutes} min
+    - Commits: ${metrics.rawMetrics.githubCommits}
+    - Deep Focus Interruptions: ${metrics.rawMetrics.pomoTabSwitches}
+    
+    Task:
+    You MUST output EXACTLY two lines.
+    Line 1: A useful observation correlating their specific metrics.
+    Line 2: Exactly ONE actionable step to improve their burnout risk.
     `;
 
-    // Only hit OpenAI if key exists (fallback for hackathon)
-    if (!process.env.OPENAI_API_KEY) {
+    // Only hit Gemini if key exists (fallback for hackathon)
+    if (!process.env.GEMINI_API_KEY) {
        return NextResponse.json({ 
          insight: `(Mock Insight) You've been operating with a burnout risk of ${metrics.score}. Consider adding 1 recovery day and reducing night activity.` 
        });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: 'system', content: prompt }],
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      max_tokens: 150,
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction: prompt,
+        temperature: 0.7,
+        maxOutputTokens: 80,
+      }
     });
 
-    return NextResponse.json({ insight: completion.choices[0].message.content });
+    return NextResponse.json({ insight: response.text });
 
   } catch (error) {
-    console.error('OpenAI Error:', error);
+    console.error('Gemini Error:', error);
     return NextResponse.json({ error: 'Failed to generate insight' }, { status: 500 });
   }
 }

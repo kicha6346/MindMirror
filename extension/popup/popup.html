@@ -3,35 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <title>MindMirror</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <img src="../icons/icon48.png" alt="MindMirror Logo" class="logo" onerror="this.style.display='none'">
-      <h1>MindMirror</h1>
-    </div>
     
-    <div id="unauth-view" style="display: none; text-align: center; padding: 10px 0;">
-      <p style="margin-bottom: 12px; font-weight: 500;">Please log in to track your stats.</p>
-      <button id="login-btn" style="width: 100%; padding: 10px; background: #818cf8; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">Login / Register</button>
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-icon">🧠</div>
+      <div>
+        <h1>MindMirror</h1>
+        <p class="subtitle">Burnout Intelligence</p>
+      </div>
     </div>
 
+    <!-- Unauthenticated view -->
+    <div id="unauth-view" style="display: none; text-align: center; padding: 8px 0;">
+      <p class="unauth-msg">Login to start tracking your burnout risk.</p>
+      <button id="login-btn" class="btn-primary">Login / Register</button>
+    </div>
+
+    <!-- Authenticated view -->
     <div id="auth-view" style="display: none;">
-      <div class="status-card">
-        <p>Tracking Status: <span id="status-text" class="active">Active</span></p>
       
-      <label class="switch">
-        <input type="checkbox" id="pause-toggle">
-        <span class="slider round"></span>
-      </label>
-      <span class="toggle-label">Pause Tracking</span>
+      <!-- Status card -->
+      <div class="status-card">
+        <div class="status-row">
+          <div class="status-label-group">
+            <span class="status-dot"></span>
+            <span class="status-title">Tracking</span>
+            <span id="status-text" class="active">Active</span>
+          </div>
+          <div class="toggle-wrap">
+            <label class="switch">
+              <input type="checkbox" id="pause-toggle">
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">Pause</span>
+          </div>
+        </div>
       </div>
-      <button id="dashboard-btn" style="margin-top: 16px; width: 100%; padding: 10px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; font-weight: 600;">View Dashboard</button>
+
+      <!-- Pomodoro Card -->
+      <div class="pomodoro-card">
+        <div class="pomo-header">
+          <span class="pomo-icon">🍅</span>
+          <h3>Deep Focus</h3>
+        </div>
+
+        <!-- Setup view -->
+        <div id="pomo-setup">
+          <div class="pomo-inputs">
+            <label>
+              <span>Focus (min)</span>
+              <input type="number" id="pomo-focus-min" value="25" min="1">
+            </label>
+            <label>
+              <span>Break (min)</span>
+              <input type="number" id="pomo-break-min" value="5" min="1">
+            </label>
+          </div>
+          <button id="pomo-start-btn" class="btn-primary">▶ Start Session</button>
+        </div>
+
+        <!-- Active timer view -->
+        <div id="pomo-active" style="display: none;">
+          <h2 id="pomo-timer-display" class="timer-text">25:00</h2>
+          <p id="pomo-mode-label" class="mode-label">FOCUS MODE</p>
+          
+          <div class="pomo-stats">
+            <div class="stat-pill" title="Live Focus Score">
+              <span class="stat-icon">🎯</span>
+              <span id="pomo-score">100</span>
+            </div>
+            <div class="stat-pill" title="Distractions">
+              <span class="stat-icon">⚠️</span>
+              <span id="pomo-distractions">0</span>
+            </div>
+            <div class="stat-pill" title="Doomscrolls">
+              <span class="stat-icon">🧟‍♂️</span>
+              <span id="pomo-doom">0</span>
+            </div>
+          </div>
+
+          <button id="pomo-stop-btn" class="btn-danger">■ End &amp; Save</button>
+        </div>
+      </div>
+
+      <!-- Dashboard link -->
+      <button id="dashboard-btn" class="btn-secondary">View Full Dashboard →</button>
     </div>
 
     <div class="disclaimer">
-      <p>Not medical advice. MindMirror tracks behavior locally to help detect burnout risk.</p>
+      <p>Not medical advice. Tracks behavior locally to detect burnout risk.</p>
     </div>
   </div>
 
