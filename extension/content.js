@@ -1,9 +1,9 @@
 // content.js
-// Runs on localhost:3000 to extract the Supabase auth token
+// Runs on mindmirror-amber.vercel.app to extract the Supabase auth token
 function syncAuth() {
   // CRITICAL FIX: Only scrape localStorage if we are actually on the Dashboard
   // Otherwise, visiting youtube.com will find no token and instantly log you out of the extension!
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+  if (window.location.hostname !== 'mindmirror-amber.vercel.app' && window.location.hostname !== '127.0.0.1') {
     return; 
   }
 
@@ -21,7 +21,7 @@ function syncAuth() {
       }
     } catch(e) {}
   } else {
-    // We are on localhost but no token exists -> User logged out of the dashboard
+    // We are on mindmirror-amber.vercel.app but no token exists -> User logged out of the dashboard
     chrome.runtime.sendMessage({ type: 'SYNC_AUTH', userId: null });
   }
 }
@@ -347,7 +347,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // GIF (breathing exercise)
     const gif = document.createElement('img');
-    gif.src = 'http://localhost:3000/Breathing%20Exercise.gif';
+    gif.src = 'https://mindmirror-amber.vercel.app/Breathing%20Exercise.gif';
     Object.assign(gif.style, {
       width: '220px',
       height: '220px',

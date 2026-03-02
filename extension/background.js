@@ -94,7 +94,7 @@ chrome.storage.local.get(['isPaused', 'usageData', 'pomodoroState', 'burnoutStat
 // Helper: Get user's active custom blocklist from dashboard
 async function fetchUserBlocklist(userId) {
   try {
-    const res = await fetch(`http://localhost:3000/api/blocklist?userId=${userId}`);
+    const res = await fetch(`https://mindmirror-amber.vercel.app/api/blocklist?userId=${userId}`);
     const json = await res.json();
     if (json.success && json.blocklist) {
       // Return array of active domains
@@ -112,7 +112,7 @@ async function fetchUserBlocklist(userId) {
 // Helper: Get user's custom website categorization assignments
 async function fetchUserCustomCategories(userId) {
   try {
-    const res = await fetch(`http://localhost:3000/api/categories?userId=${userId}`);
+    const res = await fetch(`https://mindmirror-amber.vercel.app/api/categories?userId=${userId}`);
     const json = await res.json();
     if (json.success && json.mappings) {
       // Build an explicit lookup map: { "reddit.com": "work" }
@@ -410,7 +410,7 @@ async function syncDataToBackend() {
 
       console.log(`[MindMirror Tracker] 🚀 Syncing accumulated payload to Database:`, payload);
 
-      const response = await fetch('http://localhost:3000/api/ingest/browser', {
+      const response = await fetch('https://mindmirror-amber.vercel.app/api/ingest/browser', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -448,7 +448,7 @@ async function fetchBurnoutState() {
   if (!userId || userId.startsWith('mock-')) return;
   
   try {
-    const scoreRes = await fetch(`http://localhost:3000/api/score?userId=${userId}`);
+    const scoreRes = await fetch(`https://mindmirror-amber.vercel.app/api/score?userId=${userId}`);
     const scoreJson = await scoreRes.json();
     
     if (scoreJson.success && scoreJson.current) {
@@ -457,7 +457,7 @@ async function fetchBurnoutState() {
       
       // If score is high, actively fetch a personalized insight for the popup
       if (burnoutState.score >= 75) {
-        const insightRes = await fetch(`http://localhost:3000/api/insights`, {
+        const insightRes = await fetch(`https://mindmirror-amber.vercel.app/api/insights`, {
            method: 'POST',
            headers: { 'Content-Type': 'application/json' },
            body: JSON.stringify({ userId })
@@ -488,7 +488,7 @@ async function fetchBurnoutState() {
 function evaluateAndSyncMonochrome(tabId, domain) {
   if (!tabId || !domain) return;
   // Exclude system/dashboard pages
-  if (domain === 'localhost' || domain === '127.0.0.1' || domain.includes('mindmirror')) {
+  if (domain === 'mindmirror-amber.vercel.app' || domain === '127.0.0.1' || domain.includes('mindmirror')) {
      chrome.tabs.sendMessage(tabId, { type: 'UPDATE_MONOCHROME', intensity: 0 }).catch(()=>{});
      return;
   }
@@ -639,7 +639,7 @@ async function syncPomodoroSession() {
   };
 
   try {
-    const res = await fetch('http://localhost:3000/api/pomodoro/sync', {
+    const res = await fetch('https://mindmirror-amber.vercel.app/api/pomodoro/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)

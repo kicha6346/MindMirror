@@ -21,12 +21,12 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatusText(isPaused);
   });
 
-  loginBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:3000/auth' });
+  document.getElementById('login-btn').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://mindmirror-amber.vercel.app/auth' });
   });
 
-  dashboardBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'http://localhost:3000/' });
+  document.getElementById('open-dashboard').addEventListener('click', () => {
+    chrome.tabs.create({ url: 'https://mindmirror-amber.vercel.app/' });
   });
 
   // Handle toggle change
