@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.tabs.create({ url: 'https://mindmirror-amber.vercel.app/auth' });
   });
 
-  document.getElementById('open-dashboard').addEventListener('click', () => {
+  document.getElementById('dashboard-btn').addEventListener('click', () => {
     chrome.tabs.create({ url: 'https://mindmirror-amber.vercel.app/' });
   });
 
